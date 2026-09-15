@@ -1,81 +1,121 @@
 # Personal Health Advisor
 
-> 一个个人化健康参谋 Skill：覆盖你自己、家人、宠物的症状咨询、化验单解读、用药饮食判断。
-> 现代医学为主，中医调养为辅；遇到红旗症状直接建议急诊，不做安抚性判断。
+> A personal health advisor skill for AI agents — covers human symptoms, pet health, lab report interpretation, and medication/diet guidance. Modern medicine first, TCM as supplement, with red-flag emergency safety rules.
 
-## 它解决什么问题
+![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
+![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)
+![Size](https://img.shields.io/badge/size-8%20files-blue.svg)
 
-普通人遇到身体不舒服，第一反应是百度——搜出来的结果不是把你吓出病，就是一堆看不懂的术语。去医院又不知道挂什么科、怎么跟医生说。
+## Why this exists
 
-这个 Skill 把"全科医生 + 兽医 + 导诊台"的逻辑固化下来：
+When you feel unwell, you Google it — and either panic or get lost in medical jargon. At the doctor's office, you don't know which department to pick or how to describe symptoms.
 
-1. **自动带上你的病史**：不用每次重复说"我有反流、我查过心电图"
-2. **先筛红旗**：真急症直接劝急诊，不耽误时间
-3. **信息不足先问**：症状描述不清楚，先追问关键问题，不硬猜
-4. **输出固定结构**：判断 → 理由 → 危险信号 → 现在怎么做 → 挂什么科
-5. **人宠分流**：猫/狗/龟的用药禁忌和人完全不同，分开走
+This skill encodes the workflow of a **GP + veterinarian + triage nurse**:
 
-## 设计亮点
+1. **Loads your medical history** — no need to repeat "I have reflux, I had an ECG" every time
+2. **Red-flag first** — real emergencies get redirected to ER immediately, no analysis
+3. **Asks when unsure** — vague symptoms get followed up with targeted questions, no guessing
+4. **Fixed output structure** — judgment → reasoning → danger signs → what to do now → which department
+5. **Human/pet split** — cats, dogs, reptiles have completely different medication rules
 
-- **Progressive Disclosure**：主文件 SKILL.md 只放核心流程（<7KB），具体知识拆成 7 个 references 文件按需加载，不占上下文
-- **红线机制**：red-flags.md 独立成文件，任何时候命中红旗都跳过分析直接劝急诊，安全优先
-- **个人档案与主逻辑分离**：my-health-profile.md 是空白模板，你填自己的信息就行，主流程不用改
-- **10 场景测试迭代**：建完之后用 10 个真实场景跑了一遍，补了追问清单、化验单解读、用药指南
+## How it works
 
-## 目录结构
+```
+User says "我胸口有点闷"
+         │
+         ▼
+┌──────────────────┐
+│ 1. Identify subject │  human? pet?
+└────────┬─────────┘
+         ▼
+┌──────────────────┐
+│ 2. Red-flag check  │  hit? → ER advice immediately
+└────────┬─────────┘
+         ▼ (no red flag)
+┌──────────────────┐
+│ 3. Read profile    │  load my-health-profile.md
+│    + differential  │  2-3 possible causes
+└────────┬─────────┘
+         ▼
+┌──────────────────┐
+│ 4. Fixed output    │  judgment / reasoning /
+│                    │  red flags / what to do /
+│                    │  which department
+└──────────────────┘
+```
+
+## Project structure
 
 ```
 personal-health-advisor/
-├── SKILL.md                          # 核心：触发规则+工作流程+输出模板
+├── SKILL.md                          # Core: trigger rules + workflow + output template
 └── references/
-    ├── my-health-profile.md          # 你的健康档案（模板，填自己的）
-    ├── red-flags.md                  # 人+宠物急诊红旗清单
-    ├── symptom-frameworks.md         # 常见症状鉴别思路
-    ├── doctor-nav.md                 # 挂什么科、怎么跟医生说
-    ├── animal-health.md              # 猫/狗/龟常见问题
-    ├── lab-interpretation.md         # 化验单解读
-    └── med-supplement-guide.md       # 药/保健品/食物能不能吃
+    ├── my-health-profile.md          # Your health record (template, fill in yourself)
+    ├── red-flags.md                  # Human + pet emergency red flags
+    ├── symptom-frameworks.md         # Symptom differential (chest pain, GI, dizziness...)
+    ├── doctor-nav.md                 # Which department, what tests, how to talk to doctor
+    ├── animal-health.md             # Cat / dog / reptile common issues
+    ├── lab-interpretation.md        # How to read blood work, liver/kidney panels, ECG
+    └── med-supplement-guide.md       # OTC meds, supplements, food safety
 ```
 
-## 快速开始
+## Quick start
 
-1. 把整个文件夹放到你的 skills 目录下
-2. 打开 `references/my-health-profile.md`，把占位符 `{xxx}` 改成你自己的真实信息
-3. 直接跟 AI 说你不舒服，它会自动触发这个 Skill
+### For AI agent users (Claude Code, Cursor, Doubao, etc.)
 
-## 输出示例
+1. Clone this repo into your agent's skills directory:
+   ```bash
+   git clone https://github.com/longyu2026/personal-health-advisor.git
+   ```
+2. Open `references/my-health-profile.md` and replace all `{placeholders}` with your real info
+3. Just tell your agent "我不舒服" / "my cat is vomiting" — it will auto-trigger this skill
+
+### What it looks like
 
 ```
 【一句话判断】
-最可能是胸壁肌肉劳损，危险等级低。
+Most likely: chest wall muscle strain, low risk.
 
 【为什么这么判断】
-1. 只有深呼吸时疼，位置固定，浅呼吸不疼
-2. 你之前心电图没有心肌缺血
-3. 最近睡姿可能不好
+1. Pain only on deep breath, fixed location
+2. No prior cardiac ischemia on ECG
+3. Possibly sleeping position last night
 
 【红旗警告】
-出现以下情况立刻急诊：
-- 安静坐着也持续胸痛超过15分钟
-- 活动后胸闷加重、出冷汗
-- 心慌持续不缓解
+Go to ER immediately if:
+- Persistent chest pain at rest >15 min
+- Chest pain with exertion + cold sweat
+- Sustained palpitations
 
 【现在可以做什么】
-1. 避免剧烈扩胸运动
-2. 局部热敷10分钟
-3. 观察2天，不缓解再去医院
+1. Avoid heavy chest expansion
+2. Warm compress 10 min
+3. Observe 2 days; see doctor if no improvement
 
 【要不要去医院】
-- 科室：胸外科/全科
-- 不需要特殊检查，医生按压诊断即可
+- Department: General practice / thoracic
+- No special tests needed; physical exam
 ```
 
-## 免责声明
+## Design highlights
 
-- 这个 Skill 是**健康参谋**，不是医生。所有输出仅供参考，不能替代面诊。
-- 真不舒服，尤其是红旗症状，第一时间去医院。
-- 宠物生病请找有资质的宠物医院，不要自己喂人用药。
+- **Progressive Disclosure**: SKILL.md stays lean (<7KB). Detailed knowledge lives in 7 reference files loaded on demand.
+- **Red-flag safety layer**: `red-flags.md` is a standalone gate. Any hit bypasses analysis and goes straight to ER advice.
+- **Profile/logic separation**: `my-health-profile.md` is a blank template. Your personal data never touches the main workflow.
+- **Tested with 10 real scenarios**: After building, I ran 10 real user scenarios to find gaps, then added follow-up questions, lab interpretation, and medication guidance.
+
+## Supported pets
+
+- **Cats**: reverse sneezing, vomiting, diarrhea, diet hazards, common emergencies
+- **Reptiles/turtles**: shell rot, eye disease, buoyancy issues, pneumonia, environmental causes
+- Other pets: the framework adapts — add your species to `animal-health.md`
+
+## Disclaimer
+
+- This is a health advisor, **not a doctor**. All output is for reference only.
+- For red-flag symptoms, go to ER immediately.
+- For pets, consult a licensed veterinarian. Never feed human medication to animals.
 
 ## License
 
-MIT
+[MIT](LICENSE)
