@@ -1,0 +1,17 @@
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+
+# Note: references/my-health-profile.md is a template with {placeholders}.
+# If you fork this and fill in your real health data, add it here or don't commit it.
